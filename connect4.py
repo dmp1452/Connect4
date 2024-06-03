@@ -8,6 +8,7 @@ from values import *
 pygame.init()
 screen = pygame.display.set_mode((W,H+TILE_SIZE))
 pygame.display.set_caption("Connect 4")
+font = pygame.font.Font(None,30)
 screen.fill(BACKGROUND_COLOR)
 
 class Board:
@@ -16,7 +17,7 @@ class Board:
         self.bottom =np.zeros(COLS)
         self.marked_tiles =0
         self.last_move=None
-        self.position_ranking =[1,3,4,4,4,3,1]
+        self.position_ranking =[1,3,4,3,4,3,1]
 
     def get_row(self,col):
         return self.bottom[col]
@@ -31,12 +32,6 @@ class Board:
         return self.marked_tiles ==42
     
     def get_choices(self):
-        """
-        choice =[]
-        for i in range(COLS):
-            if self.bottom[i]<6:
-                choice.append((int(self.bottom[i]),i))
-        return choice"""
         center = COLS // 2
         choices = []
 
@@ -93,11 +88,10 @@ class Board:
                     if right and self.tiles[p][i+1]==player:
                         col_weight +=2
                     elif right and self.tiles[p][i+1]==0:
-                        col_weight +=2
-
-
+                        col_weight +=1
 
                 p-=1
+
             total+=col_weight*self.position_ranking[i]
         eval =total*player
         return eval
@@ -176,7 +170,7 @@ class ai:
     def eval(self,main_board):
 
         eval, move = self.minimax(main_board,False, -10,10,0)
-        print("Chosen " + str(eval))
+        message("Eval:" + str(eval))
         return move
     
     def minimax(self,board, maximizing, alpha,beta, level):
@@ -236,7 +230,28 @@ class Game:
             pygame.draw.line(screen,LINE_COLOR,(0,i*TILE_SIZE,),(W,i*TILE_SIZE,),LINE_WIDTH)
 
     def buttons(self):
-        pass
+        pygame.draw.rect(screen,(255,255,255),(0,0,200,TILE_SIZE))
+        pygame.draw.rect(screen,BLACK,(0,0,200,TILE_SIZE),1)
+        text1_surface = font.render("PvP",True,BLACK)
+        text1_rect = text1_surface.get_rect()
+        text1_rect.center=(100,TILE_SIZE//2)
+        screen.blit(text1_surface,text1_rect)
+
+        pygame.draw.rect(screen,(255,255,255),(200,0,400,TILE_SIZE))
+        pygame.draw.rect(screen,BLACK,(200,0,400,TILE_SIZE),1)
+        text2_surface = font.render("AI Starts", True, BLACK)
+        text2_rect = text2_surface.get_rect()
+        text2_rect.center=(300,TILE_SIZE//2)
+        screen.blit(text2_surface,text2_rect)
+
+        pygame.draw.rect(screen,(255,255,255),(400,0,600,TILE_SIZE))
+        pygame.draw.rect(screen,BLACK,(400,0,600,TILE_SIZE),1)
+        text3_surface = font.render("AI you start", True, BLACK)
+        text3_rect = text1_surface.get_rect()
+        text3_rect.center=(465,TILE_SIZE//2)
+        screen.blit(text3_surface,text3_rect)
+
+        message("New Game vs AI, you go first")
 
     def make_move(self,col):
         row = int(self.board.bottom[col])
@@ -253,7 +268,13 @@ class Game:
         center = (col*TILE_SIZE+TILE_SIZE//2,(ROWS-row-1)*TILE_SIZE+TILE_SIZE//2+TILE_SIZE)
         pygame.draw.circle(screen, color, center, RADIUS, CIRCLE_WIDTH)
     
-
+def message( message):
+        pygame.draw.rect(screen,(255,255,255),(0,W,H,H+TILE_SIZE-1))
+        pygame.draw.rect(screen,BLACK,(0,W,H,H+TILE_SIZE-1),1)
+        message_surface = font.render(message, True, BLACK)
+        message_rect = message_surface.get_rect()
+        message_rect.center=(W//2,H+TILE_SIZE//2)
+        screen.blit(message_surface,message_rect)
 
 
 def main():
@@ -268,24 +289,34 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.pos[1]<TILE_SIZE:
-                    pass
+                    mode = event.pos[0]//200
+                    screen.fill(BACKGROUND_COLOR)
+                    if mode ==0:
+                        game = Game(1,'pvp')
+                        message("New Game, PvP")
+                    elif mode ==1:
+                        game = Game(-1, 'ai')
+                        message("New Game vs AI, AI goes first")
+                    else:
+                        game = Game(1, 'ai')
+                        message("New Game vs AI, you go first")
+                    board = game.board
+                    ai = game.ai
                 else:
                     if abs(board.final_state())!=100000:
                         col = int(event.pos[0]//TILE_SIZE)
                         game.make_move(col)
-                        if board.final_state() != 0:
-                            pygame.display.set_caption("Winner")
+                        if abs(board.final_state()) ==100000:
+                            message("Winner")
 
             pygame.display.update()
 
         if game.gamemode =='ai'and game.player == ai.player and abs(board.final_state())!=100000:
+            message("calculating...")
             row,col = ai.eval(board)
             game.make_move(col)
-            if board.final_state() != 0:
-                pygame.display.set_caption("Winner")
-
-
-
+            if abs(board.final_state()) ==100000:
+                message("Winner")
                 
 
         pygame.display.update()
