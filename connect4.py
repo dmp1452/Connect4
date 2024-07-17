@@ -17,7 +17,7 @@ class Board:
         self.bottom =np.zeros(COLS)
         self.marked_tiles =0
         self.last_move=None
-        self.position_ranking =[1,3,4,3,4,3,1]
+        self.position_ranking =[1,2,3,1,3,2,1]
 
     def get_row(self,col):
         return self.bottom[col]
@@ -32,10 +32,20 @@ class Board:
         return self.marked_tiles ==42
     
     def get_choices(self):
+        """
         center = COLS // 2
         choices = []
+        nums= np.array([0,1,2,3,4,5])
+        while(len(num!=0)):
+            num = np.random.choice(nums, replace = False)
+            if self.bottom[num]<6:
 
+
+
+                """
     # Check from center to the left
+        center = COLS // 2
+        choices = []
         for offset in range(center + 1):
             col = center - offset
             if self.bottom[col] < 6:
@@ -43,7 +53,6 @@ class Board:
             col = center + offset
             if col < COLS and self.bottom[col] < 6:
                 choices.append((int(self.bottom[col]), col))
-
         return choices
 
         
@@ -54,6 +63,8 @@ class Board:
         num =self.check_win()
         if num!=0:
             return num
+        
+
 
         player = self.tiles[self.last_move[0]][self.last_move[1]]
         total =0
@@ -70,25 +81,36 @@ class Board:
                     #if down and self.tiles[p-1][i]==player:
                      #   col_weight+=2
 
-                    if down and left and self.tiles[p-1][i-1]==player:
-                        col_weight +=2
-                    elif down and left and self.tiles[p-1][i-1]==0:
-                        col_weight +=1
+                    if down and left:
+                        if self.tiles[p-1][i-1]==player:
+                            col_weight +=5
+                        elif self.tiles[p-1][i-1]==0:
+                            col_weight +=3
 
-                    if down and right and self.tiles[p-1][i+1]==player:
-                        col_weight +=2
-                    elif down and right and self.tiles[p-1][i+1]==0:
-                        col_weight +=1
+                    if down and right:
+                        if self.tiles[p-1][i+1]==player:
+                            col_weight +=5
+                        elif self.tiles[p-1][i+1]==0:
+                            col_weight +=3
 
-                    if left and self.tiles[p][i-1]==player:
-                        col_weight +=2
-                    elif left and self.tiles[p][i-1]==0:
-                        col_weight +=1
+                    if left:
+                        if self.tiles[p][i-1]==player:
+                            col_weight +=5
+                        elif self.tiles[p][i-1]==0:
+                            col_weight +=3
 
-                    if right and self.tiles[p][i+1]==player:
-                        col_weight +=2
-                    elif right and self.tiles[p][i+1]==0:
-                        col_weight +=1
+                    if right:
+                        if self.tiles[p][i+1]==player:
+                            col_weight +=5
+                        elif right and self.tiles[p][i+1]==0:
+                            col_weight +=3
+                    if up and right:
+                        if self.tiles[p+1][i+1]==player:
+                            col_weight +=5
+                        elif self.tiles[p+1][i+1]==0:
+                            col_weight +=3
+
+
 
                 p-=1
 
@@ -99,6 +121,8 @@ class Board:
 
 
     def check_win(self):
+        if self.marked_tiles<7:
+            return 0
         row,col = int(self.last_move[0]),int(self.last_move[1])
         player = self.tiles[row][col]
 
@@ -156,12 +180,6 @@ class Board:
         
         return 0
         
-
-        
-
-        
-
-
 
 class ai:
     def __init__(self,player =-1):
@@ -275,6 +293,7 @@ def message( message):
         message_rect = message_surface.get_rect()
         message_rect.center=(W//2,H+TILE_SIZE//2)
         screen.blit(message_surface,message_rect)
+        pygame.display.update()
 
 
 def main():
@@ -303,15 +322,15 @@ def main():
                     board = game.board
                     ai = game.ai
                 else:
-                    if abs(board.final_state())!=100000:
+                    if abs(board.final_state())!=100000 and not board.is_full():
                         col = int(event.pos[0]//TILE_SIZE)
                         game.make_move(col)
                         if abs(board.final_state()) ==100000:
                             message("Winner")
 
             pygame.display.update()
-
-        if game.gamemode =='ai'and game.player == ai.player and abs(board.final_state())!=100000:
+        if game.gamemode =='ai'and game.player == ai.player and abs(board.final_state())!=100000 and not board.is_full():
+            print("erv")
             message("calculating...")
             row,col = ai.eval(board)
             game.make_move(col)
