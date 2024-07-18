@@ -64,8 +64,6 @@ class Board:
         if num!=0:
             return num
         
-
-
         player = self.tiles[self.last_move[0]][self.last_move[1]]
         total =0
         for i in range(COLS):
@@ -78,8 +76,6 @@ class Board:
                     left = i>0
                     right =i<COLS-1
                     up = p<ROWS-1
-                    #if down and self.tiles[p-1][i]==player:
-                     #   col_weight+=2
 
                     if down and left:
                         if self.tiles[p-1][i-1]==player:
@@ -109,8 +105,6 @@ class Board:
                             col_weight +=5
                         elif self.tiles[p+1][i+1]==0:
                             col_weight +=3
-
-
 
                 p-=1
 
@@ -335,7 +329,7 @@ def main():
             row,col = ai.eval(board)
             game.make_move(col)
             if abs(board.final_state()) ==100000:
-                message("Winner")
+                message("AI Won")
                 
 
         pygame.display.update()
